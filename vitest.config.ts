@@ -8,5 +8,10 @@ export default defineConfig({
     env: { DATABASE_URL: ":memory:", DEMO_MODE: "true" },
     fileParallelism: true,
   },
-  resolve: { alias: { "@": path.resolve(__dirname, "src") } },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+      "server-only": path.resolve(__dirname, "tests/stubs/server-only.ts"),
+    },
+  },
 });

@@ -70,3 +70,9 @@ export async function currentUserOrRedirect() {
     redirect("/login");
   }
 }
+
+/** Form-action wrapper for the login page's role buttons (form actions must return void). */
+export async function demoEnterAction(role: string, next: string | undefined, _formData: FormData): Promise<void> {
+  const result = await demoSwitchRole(role, next); // redirects on success
+  if (!result.ok) redirect(`/login?error=${encodeURIComponent(result.problem.title)}`);
+}
