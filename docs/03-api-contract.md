@@ -33,6 +33,7 @@ Server actions return `{ ok: true, data } | { ok: false, problem }` with the sam
 |---|---|---|
 | `POST /api/v1/public/reports` | anyone, 10 / 15 min / IP | Create a public report (JSON or multipart). `Idempotency-Key` header or body field |
 | `GET /api/v1/public/cases/[ref]` | anyone | Public projection; the track page polls every 5 s |
+| `GET /api/v1/public/map` | anyone | Public projections of all non-dismissed cases with coordinates rounded to ~100 m, landmark and near-school flag |
 | `POST /api/v1/public/cases/[ref]/sightings` | anyone, 5 / 15 min / IP / case | `{ kind, idempotencyKey }` |
 | `GET /api/v1/evidence/[id]` | staff with `evidence.view` | Streams the private file; 403 otherwise |
 | `GET /api/v1/dashboard/counts` | ops_manager, reviewer | Live tiles |

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Clock3, Search, ShieldCheck, TriangleAlert } from "lucide-react";
+import { Clock3, MapPinned, Search, ShieldCheck, TriangleAlert } from "lucide-react";
 
 export default function Home() {
   return (
@@ -30,6 +30,9 @@ export default function Home() {
             <Search className="size-5" aria-hidden /> Track a report
           </Link>
         </div>
+        <Link href="/map" className="tap inline-flex items-center gap-2 rounded-xl px-2 font-semibold text-action hover:underline">
+          <MapPinned className="size-5" aria-hidden /> See the hazards near you on the map
+        </Link>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3">

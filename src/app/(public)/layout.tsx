@@ -21,6 +21,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             <Link href="/track" className="tap inline-flex items-center rounded-md px-3 hover:bg-white/10">
               Track
             </Link>
+            <Link href="/map" className="tap inline-flex items-center rounded-md px-3 hover:bg-white/10">
+              Map
+            </Link>
             <Link href="/safety" className="tap inline-flex items-center rounded-md px-3 hover:bg-white/10">
               Safety
             </Link>

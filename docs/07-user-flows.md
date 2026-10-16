@@ -7,7 +7,7 @@ This is the flow spec both tabs build against. It merges the master build prompt
 | Role | Person | Logs in? | Home after login |
 |---|---|---|---|
 | Resident / parent | anonymous | No | `/report`, `/track/[ref]` |
-| Community worker | Thandi M., school safety rep | Yes | `/home` → Nearby · Triage · Protect |
+| Community worker | Thandi M., school safety rep | One tap on `/login` | `/home` → Nearby · Triage · Protect |
 | Ops manager | Sipho K., ward coordinator | Yes | `/home` → Dashboard · Cases · Assign |
 | Field team | Field Team B | Yes | `/home` → Jobs · Record · History |
 | Reviewer | L. Naidoo, authorised inspector | Yes | `/home` → To verify · Reviewed |
@@ -58,6 +58,10 @@ The page polls `/api/v1/public/cases/[ref]` every 5 seconds, so the live demo mo
 What the public never sees: photos, names, phone numbers, exact coordinates, internal notes.
 
 ---
+
+## Flow 2b — Anyone looks at the map (`/map`)
+
+Every non-dismissed case as a pin, rounded to about 100 m so nobody's home is marked. Red: nobody has verified a barrier. Amber: barrier recorded, not yet checked. Green: made safe or resolved, verified. Bigger pin: near a school. Tap a pin for the reference, landmark, clock and a link to the public page. The list below the map is sorted longest-unprotected first and works offline; the tiles need internet.
 
 ## Flow 3 — Community worker claims and triages (`/home` → Triage, `/cases/[id]`)
 

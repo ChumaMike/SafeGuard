@@ -15,6 +15,11 @@ Scaffold → domain layer with tests → server (auth, actions, routes, uploads,
 
 **Cut order if time runs short:** 6 → 4 → 3. Never cut the verified workflow, the clock or the sightings.
 
+## Added after Phase 7 at the team's request
+
+- `/map`: Leaflet + OpenStreetMap map of every non-dismissed case with approximate pins (about 100 m), colour-coded red / amber / green, bigger pin near a school, popup linking to the public page, plus a list. Tiles need internet; pins and the list do not.
+- One-tap sign-in: the login page is only the four fictional people. No password form. `DEMO_MODE` defaults to on.
+
 ## Explicitly out of scope
 
-Restaurants, retail, hospitals, `facility_staff`, checklists, live municipal integration, emergency dispatch, AI severity scores, "certified safe" wording, maps.
+Restaurants, retail, hospitals, `facility_staff`, checklists, live municipal integration, emergency dispatch, AI severity scores, "certified safe" wording.

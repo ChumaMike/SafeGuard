@@ -6,10 +6,11 @@
 2. `/track/[ref]` — lookup box, category and suburb, public status, two big lines (Interim protection, Repair), the protection clock, last update, three sighting buttons, poster link, honest footer. Polls `/api/v1/public/cases/[ref]` every 5 s.
 3. `/poster/[ref]` — printable A4 with hazard stripes, category, landmark, QR code to the track page, the reference and the protection line. Print stylesheet.
 4. `/safety` — emergency numbers (10177, 112), how to report safely, what the app does and doesn't do, privacy.
+5. `/map` — Leaflet map of all non-dismissed cases, approximate pins (~100 m), red unprotected / amber recorded / green verified, bigger pin near a school, popup to the track page, list below. Data from `GET /api/v1/public/map`.
 
 ## Ops screens (login required; the guard redirects to `/login`)
 
-5. `/login` with the demo role switcher.
+6. `/login` — one tap on a fictional person, no password. Permissions still enforced server-side.
 6. `/home` role tabs. Community worker: Nearby, Triage, Protect. Ops manager: Dashboard, Cases, Assign. Field team: Jobs, Record, History. Reviewer: To verify, Reviewed. Each tab is a filtered case list, longest-unprotected first.
 7. `/dashboard` — tiles: Uncontained or unassessed · Recorded awaiting verification · Protected (verified) · Past make-safe due date · Resolved · Need a repair crew. Warning when repairs are recorded but not verified. "Exposed now" queue with live clocks. Ward list sorted by days unprotected, near-school flagged.
 8. `/cases/[id]` — header (ref, source, status badge), facts list incl. `municipal_ref`, two-outcome tracker with the clock, role-gated actions, evidence thumbnails, vertical timeline (newest first, `aria-current="step"` on the latest). Actions the role can't take are shown locked with the reason ("Verify protection: only the reviewer"). Forms: triage, record protection or repair (≥1 photo), review (approve / reject with reason), assign repair, dismiss or reopen with a reason.

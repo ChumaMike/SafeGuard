@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, LogOut, TriangleAlert } from "lucide-react";
+import { LayoutDashboard, LogOut, MapPinned, TriangleAlert } from "lucide-react";
 import { logoutAction } from "@/server/actions/auth";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -26,6 +26,9 @@ export function OpsHeader({ canSeeDashboard }: OpsHeaderProps) {
               <LayoutDashboard className="size-4" aria-hidden /> Dashboard
             </Link>
           )}
+          <Link href="/map" className="tap inline-flex items-center gap-1 rounded-md px-3 hover:bg-accent">
+            <MapPinned className="size-4" aria-hidden /> Map
+          </Link>
           <Link href="/report" className="tap inline-flex items-center gap-1 rounded-md px-3 hover:bg-accent">
             <TriangleAlert className="size-4" aria-hidden /> Report
           </Link>

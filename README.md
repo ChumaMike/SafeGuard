@@ -16,8 +16,7 @@ pnpm db:seed
 pnpm dev          # http://localhost:3000
 ```
 
-Staff demo accounts (password is `DEMO_PASSWORD` in `.env.local`):
-`community@demo.safeguard.test` · `ops@demo.safeguard.test` · `field@demo.safeguard.test` · `reviewer@demo.safeguard.test`
+Staff sign-in is one tap on `/login`: pick Thandi (community worker), Sipho (ops manager), Field Team B or L. Naidoo (reviewer). No password. All four are fictional.
 
 Tests: `pnpm test` (domain layer, vitest) · `pnpm test:e2e` (Playwright demo path).
 

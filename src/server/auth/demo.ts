@@ -1,6 +1,7 @@
 import type { StaffRole } from "@/lib/contracts/enums";
 
-export const isDemoMode = () => (process.env.DEMO_MODE ?? "false").toLowerCase() === "true";
+/** On unless DEMO_MODE=false: the hackathon build signs people in with one tap, no password. */
+export const isDemoMode = () => (process.env.DEMO_MODE ?? "true").toLowerCase() !== "false";
 
 export const demoPassword = () => process.env.DEMO_PASSWORD ?? "safeguard-demo-2026";
 
