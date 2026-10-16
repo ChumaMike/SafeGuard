@@ -4,7 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Check, ClipboardCheck, Lock, ShieldCheck, TriangleAlert, Users, Wrench, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HAZARD_LABEL, HazardCategory, type CaseStatus, type StaffRole } from "@/lib/contracts/enums";
+import { HAZARD_CATEGORIES, HAZARD_LABEL, type CaseStatus, type StaffRole } from "@/lib/contracts/labels";
 import type { ProblemDetails } from "@/lib/action-result";
 import { toLocalInputValue } from "@/lib/format";
 import {
@@ -215,7 +215,7 @@ function TriageForm({ hazardCategory, staff, currentUserId, pending, onCancel, o
       <label className="flex flex-col gap-1 text-sm">
         <span className="font-medium">Hazard category</span>
         <select name="hazardCategory" defaultValue={hazardCategory} className="tap rounded-lg border bg-background px-3">
-          {HazardCategory.options.map((c) => (
+          {HAZARD_CATEGORIES.map((c) => (
             <option key={c} value={c}>{HAZARD_LABEL[c]}</option>
           ))}
         </select>

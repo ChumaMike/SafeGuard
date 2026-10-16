@@ -150,6 +150,8 @@
 
   --primary: var(--action);
   --primary-foreground: var(--action-foreground);
+  /* 5.6:1 on the muted surface; shadcn default was 4.3:1 */
+  --muted-foreground: #5a6270;
   --ring: var(--action);
   --radius: 0.75rem;
 }

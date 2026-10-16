@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Eye, MapPin, Printer, ShieldOff, ShieldCheck, Clock3 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HAZARD_LABEL, SIGHTING_LABEL, type SightingKind } from "@/lib/contracts/enums";
+import { HAZARD_LABEL, SIGHTING_LABEL, type SightingKind } from "@/lib/contracts/labels";
 import type { PublicCaseView } from "@/lib/contracts/public-view";
 import { formatDateTime } from "@/lib/format";
 import { addSighting } from "@/server/actions/public";

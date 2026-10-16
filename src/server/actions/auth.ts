@@ -18,10 +18,8 @@ import {
 } from "@/server/auth/session";
 import { Problem } from "@/server/domain/errors";
 import { formObject, parse, wrap } from "./_wrap";
+import { safeNext } from "@/lib/safe-next";
 
-function safeNext(next: unknown): string {
-  return typeof next === "string" && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
-}
 
 export async function loginAction(_prev: ActionResult<undefined> | null, formData: FormData): Promise<ActionResult<undefined>> {
   const result = await wrap(async () => {

@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import { Ban, CircleCheckBig, CircleDashed, Clock3, Eye, Inbox, TriangleAlert, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATUS_LABEL, type CaseStatus } from "@/lib/contracts/enums";
+import { STATUS_LABEL, type CaseStatus } from "@/lib/contracts/labels";
 
 export type Tone = "red" | "amber" | "green" | "neutral";
 

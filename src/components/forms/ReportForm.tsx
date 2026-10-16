@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { Check, Copy, LocateFixed, Phone, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HAZARD_LABEL, HazardCategory } from "@/lib/contracts/enums";
+import { HAZARD_CATEGORIES, HAZARD_LABEL, type HazardCategory } from "@/lib/contracts/labels";
 import type { ProblemDetails } from "@/lib/action-result";
 import { confirmDuplicateSighting, submitPublicReport, type SubmitReportData } from "@/server/actions/public";
 import type { DuplicateCandidate } from "@/server/services/cases";
@@ -216,7 +216,7 @@ export function ReportForm() {
         <fieldset className="flex flex-col gap-4">
           <legend className="text-xl font-bold">Step 1 of 3 — What is dangerous?</legend>
           <div role="radiogroup" aria-label="Hazard type" aria-describedby={err("hazardCategory") ? "cat-err" : undefined} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-            {HazardCategory.options.map((c) => (
+            {HAZARD_CATEGORIES.map((c) => (
               <label
                 key={c}
                 className={cn(

@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { usePathname } from "next/navigation";
-import { ROLE_LABEL, StaffRole } from "@/lib/contracts/enums";
+import { ROLE_LABEL, STAFF_ROLES, type StaffRole } from "@/lib/contracts/labels";
 import { demoSwitchRole } from "@/server/actions/auth";
 
 export function DemoRoleSwitcher({ currentRole }: { currentRole: StaffRole }) {
@@ -22,7 +22,7 @@ export function DemoRoleSwitcher({ currentRole }: { currentRole: StaffRole }) {
           });
         }}
       >
-        {StaffRole.options.map((r) => (
+        {STAFF_ROLES.map((r) => (
           <option key={r} value={r}>
             {ROLE_LABEL[r]}
           </option>

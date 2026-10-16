@@ -1,5 +1,5 @@
 import { FlaskConical } from "lucide-react";
-import { ROLE_LABEL, type StaffRole } from "@/lib/contracts/enums";
+import { ROLE_LABEL, type StaffRole } from "@/lib/contracts/labels";
 import { DemoRoleSwitcher } from "./DemoRoleSwitcher";
 
 interface DemoBannerProps {

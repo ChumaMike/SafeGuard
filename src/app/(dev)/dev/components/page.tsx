@@ -8,7 +8,7 @@ import { Timeline, type TimelineItem } from "@/components/case/Timeline";
 import { PhotoPicker } from "@/components/forms/PhotoPicker";
 import { DemoBanner } from "@/components/layout/DemoBanner";
 import { ThemeToggle } from "@/components/layout/ThemeToggle";
-import { CaseStatus } from "@/lib/contracts/enums";
+import { CASE_STATUSES } from "@/lib/contracts/labels";
 
 export const metadata = { title: "Component showcase" };
 
@@ -40,7 +40,7 @@ export default function ComponentsShowcase() {
         <section className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">StatusBadge — every status, icon + word</h2>
           <div className="flex flex-wrap gap-2">
-            {CaseStatus.options.map((s) => (
+            {CASE_STATUSES.map((s) => (
               <StatusBadge key={s} status={s} />
             ))}
           </div>

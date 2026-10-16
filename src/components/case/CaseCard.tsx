@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { MapPin, School, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { HAZARD_LABEL, type CaseStatus, type HazardCategory } from "@/lib/contracts/enums";
+import { HAZARD_LABEL, type CaseStatus, type HazardCategory } from "@/lib/contracts/labels";
 import { clockState } from "@/lib/clock";
 import { formatDate, isPast } from "@/lib/format";
 import { ProtectionClock } from "./ProtectionClock";

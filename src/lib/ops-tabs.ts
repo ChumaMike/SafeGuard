@@ -1,4 +1,4 @@
-import type { CaseStatus, StaffRole } from "@/lib/contracts/enums";
+import type { CaseStatus, StaffRole } from "@/lib/contracts/labels";
 
 export interface OpsTab {
   key: string;

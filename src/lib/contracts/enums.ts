@@ -1,92 +1,42 @@
 import * as z from "zod";
+import {
+  ACTION_TYPES,
+  CASE_STATUSES,
+  DECISIONS,
+  EVENT_TYPES,
+  HAZARD_CATEGORIES,
+  REVIEW_STAGES,
+  ROLES,
+  SIGHTING_KINDS,
+  SOURCE_TYPES,
+  STAFF_ROLES,
+} from "./labels";
 
-export const Role = z.enum(["resident", "community_worker", "ops_manager", "field_team", "reviewer"]);
-export type Role = z.infer<typeof Role>;
+// Labels, const arrays and the string-literal types live in ./labels (zod-free, client-safe).
+export * from "./labels";
 
-export const StaffRole = z.enum(["community_worker", "ops_manager", "field_team", "reviewer"]);
-export type StaffRole = z.infer<typeof StaffRole>;
+export const Role = z.enum(ROLES);
+export const StaffRole = z.enum(STAFF_ROLES);
+export const CaseStatus = z.enum(CASE_STATUSES);
+export const HazardCategory = z.enum(HAZARD_CATEGORIES);
+export const SourceType = z.enum(SOURCE_TYPES);
+export const SightingKind = z.enum(SIGHTING_KINDS);
+export const ActionType = z.enum(ACTION_TYPES);
+export const ReviewStage = z.enum(REVIEW_STAGES);
+export const Decision = z.enum(DECISIONS);
+export const EventType = z.enum(EVENT_TYPES);
 
-export const ROLE_LABEL: Record<Role, string> = {
-  resident: "Resident",
-  community_worker: "Community worker",
-  ops_manager: "Ops manager",
-  field_team: "Field team",
-  reviewer: "Reviewer",
-};
-
-export const CaseStatus = z.enum([
-  "unassessed",
-  "under_review",
-  "uncontained",
-  "protection_recorded",
-  "protected",
-  "repair_pending",
-  "repair_recorded",
-  "resolved",
-  "dismissed",
-]);
-export type CaseStatus = z.infer<typeof CaseStatus>;
-
-export const STATUS_LABEL: Record<CaseStatus, string> = {
-  unassessed: "Unassessed",
-  under_review: "Under review",
-  uncontained: "Uncontained",
-  protection_recorded: "Barrier recorded",
-  protected: "Protected (verified)",
-  repair_pending: "Repair pending",
-  repair_recorded: "Repair recorded",
-  resolved: "Resolved (verified)",
-  dismissed: "Dismissed",
-};
-
-export const HazardCategory = z.enum([
-  "open_manhole",
-  "sinkhole",
-  "exposed_wires",
-  "sewage_leak",
-  "collapsed_pavement",
-  "other",
-]);
-export type HazardCategory = z.infer<typeof HazardCategory>;
-
-export const HAZARD_LABEL: Record<HazardCategory, string> = {
-  open_manhole: "Open manhole",
-  sinkhole: "Sinkhole",
-  exposed_wires: "Exposed wires",
-  sewage_leak: "Sewage leak",
-  collapsed_pavement: "Collapsed pavement",
-  other: "Other hazard",
-};
-
-export const SourceType = z.enum(["public_report", "internal_finding", "official_finding"]);
-export type SourceType = z.infer<typeof SourceType>;
-
-export const SightingKind = z.enum(["still_open", "barrier_present", "barrier_gone"]);
-export type SightingKind = z.infer<typeof SightingKind>;
-
-export const SIGHTING_LABEL: Record<SightingKind, string> = {
-  still_open: "Still open",
-  barrier_present: "Barrier is there",
-  barrier_gone: "Barrier gone",
-};
-
-export const ActionType = z.enum(["protection", "correction"]);
-export type ActionType = z.infer<typeof ActionType>;
-
-export const ReviewStage = z.enum(["protection", "closure"]);
-export type ReviewStage = z.infer<typeof ReviewStage>;
-
-export const Decision = z.enum(["approved", "rejected"]);
-export type Decision = z.infer<typeof Decision>;
-
-export const EventType = z.enum([
-  "created",
-  "status_changed",
-  "assigned",
-  "action_recorded",
-  "evidence_added",
-  "review_recorded",
-  "sighting",
-  "note",
-]);
-export type EventType = z.infer<typeof EventType>;
+// The zod consts above shadow the star re-export for these names; re-export the types explicitly
+// so `import type { CaseStatus } from "@/lib/contracts/enums"` keeps working.
+export type {
+  ActionType,
+  CaseStatus,
+  Decision,
+  EventType,
+  HazardCategory,
+  ReviewStage,
+  Role,
+  SightingKind,
+  SourceType,
+  StaffRole,
+} from "./labels";

@@ -5,13 +5,15 @@ import { DEMO_ACCOUNTS, isDemoMode } from "@/server/auth/demo";
 import { getCurrentUser } from "@/server/auth/session";
 import { ROLE_LABEL, StaffRole } from "@/lib/contracts/enums";
 import { demoEnterAction } from "@/server/actions/auth";
+import { safeNext } from "@/lib/safe-next";
 
 export const metadata = { title: "Staff sign-in" };
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
-  const { next } = await searchParams;
+  const { next: rawNext } = await searchParams;
+  const next = safeNext(rawNext);
   const user = await getCurrentUser();
-  if (user) redirect(next && next.startsWith("/") ? next : "/home");
+  if (user) redirect(next);
   const demo = isDemoMode();
 
   return (

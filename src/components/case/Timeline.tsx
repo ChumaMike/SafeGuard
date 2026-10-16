@@ -13,7 +13,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ROLE_LABEL, SIGHTING_LABEL, STATUS_LABEL, type CaseStatus, type Role, type SightingKind } from "@/lib/contracts/enums";
+import { ROLE_LABEL, SIGHTING_LABEL, STATUS_LABEL, type CaseStatus, type Role, type SightingKind } from "@/lib/contracts/labels";
 import { formatDateTime } from "@/lib/format";
 import { StatusBadge, type Tone } from "./StatusBadge";
 
@@ -96,7 +96,7 @@ interface TimelineProps {
 export function Timeline({ events, className }: TimelineProps) {
   if (events.length === 0) return <p className="text-sm text-muted-foreground">No history yet.</p>;
   return (
-    <ol className={cn("relative ms-3 border-s-2 border-border", className)}>
+    <ol data-testid="timeline" className={cn("relative ms-3 border-s-2 border-border", className)}>
       {events.map((e, i) => {
         const r = render(e);
         const who = r.community ? "Community" : e.actorName ?? roleLabel(e.actorRole);
