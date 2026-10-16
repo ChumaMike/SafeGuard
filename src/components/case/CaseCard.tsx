@@ -37,7 +37,7 @@ export function CaseCard({ c, href = `/cases/${c.id}`, className }: CaseCardProp
     <Link
       href={href}
       className={cn(
-        "block rounded-xl border bg-card p-4 transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-ring",
+        "block rounded-2xl border bg-card p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-ring",
         className,
       )}
     >

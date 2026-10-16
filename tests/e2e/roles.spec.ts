@@ -39,7 +39,7 @@ test("field team sees Verify protection locked with the reason; reviewer sees it
 test("dashboard is for ops manager and reviewer; counts match the seed", async ({ page, request }) => {
   await loginAs(page, "ops_manager");
   await page.goto("/dashboard");
-  await expect(page.getByRole("heading", { name: "Ward safety dashboard" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Who is still exposed/ })).toBeVisible();
   await expect(page.getByText("DEMO · simulated roles")).toBeVisible();
 
   const counts = await (await page.request.get("/api/v1/dashboard/counts")).json();
