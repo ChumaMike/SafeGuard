@@ -44,7 +44,7 @@ async function main() {
   await phone.close();
 
   // Desktop ops screens
-  const desk = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "light", deviceScaleFactor: 1.5 });
+  const desk = await browser.newContext({ viewport: { width: 1440, height: 900 }, colorScheme: "light" });
   const d = await desk.newPage();
   await enterAs(d, "Sipho K.");
   await d.goto(`${BASE}/dashboard`);
