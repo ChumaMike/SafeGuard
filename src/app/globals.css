@@ -128,3 +128,126 @@
     @apply font-sans;
   }
 }
+/* ------------------------------------------------------------------ */
+/* SafeGuard SA design tokens                                          */
+/* ------------------------------------------------------------------ */
+
+:root {
+  --navy: #14202e;
+  --brand: #f2b630;
+  --action: #2459c9;
+  --action-foreground: #ffffff;
+
+  /* Status: every status has an icon and a word; colour is never the only signal. */
+  --status-red: #b42323;
+  --status-red-bg: #fbe9e9;
+  --status-amber: #8f5600;
+  --status-amber-bg: #fff3d6;
+  --status-green: #1b6e45;
+  --status-green-bg: #e3f4ea;
+  --status-neutral: #4b5563;
+  --status-neutral-bg: #eef1f5;
+
+  --primary: var(--action);
+  --primary-foreground: var(--action-foreground);
+  --ring: var(--action);
+  --radius: 0.75rem;
+}
+
+.dark {
+  --status-red: #f29a9a;
+  --status-red-bg: #3b1515;
+  --status-amber: #f5cd7a;
+  --status-amber-bg: #3a2a0a;
+  --status-green: #8bdcac;
+  --status-green-bg: #0f3122;
+  --status-neutral: #c3c9d3;
+  --status-neutral-bg: #262c36;
+
+  --background: #0f161f;
+  --foreground: #e9edf3;
+  --card: #16202c;
+  --card-foreground: #e9edf3;
+  --popover: #16202c;
+  --popover-foreground: #e9edf3;
+  --primary: #6b93ec;
+  --primary-foreground: #0b1322;
+  --muted: #1f2a38;
+  --muted-foreground: #a5afbe;
+  --accent: #1f2a38;
+  --accent-foreground: #e9edf3;
+  --border: #2a3545;
+  --input: #2a3545;
+  --ring: #6b93ec;
+}
+
+@theme inline {
+  --color-navy: var(--navy);
+  --color-brand: var(--brand);
+  --color-action: var(--action);
+  --color-action-foreground: var(--action-foreground);
+  --color-status-red: var(--status-red);
+  --color-status-red-bg: var(--status-red-bg);
+  --color-status-amber: var(--status-amber);
+  --color-status-amber-bg: var(--status-amber-bg);
+  --color-status-green: var(--status-green);
+  --color-status-green-bg: var(--status-green-bg);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-bg: var(--status-neutral-bg);
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    -webkit-text-size-adjust: 100%;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  /* Public pages read at 18px; the ops area stays at 16px. */
+  .public-shell {
+    font-size: 1.125rem;
+  }
+  .ref {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .tap {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  .hazard-stripes {
+    background: repeating-linear-gradient(45deg, var(--brand) 0 22px, var(--navy) 22px 44px);
+  }
+  .sticky-submit {
+    position: sticky;
+    bottom: 0;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--background) 70%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  @media print {
+    .no-print {
+      display: none !important;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 12mm;
+    }
+    html,
+    body {
+      background: #fff !important;
+      color: #000 !important;
+    }
+  }
+}
