@@ -1,0 +1,265 @@
+# SafeGuard SA — Build Reference Plan
+
+## Context
+
+The concept document (`SafeGuard_SA_Complete_Concept_Document.pdf`, 13 pages, Youth Tech Expo 2026, Gauteng challenge G12 "failing/distressed infrastructure") describes **SafeGuard SA**: a mobile-friendly safety-case platform where a hazard report or inspection finding becomes one traceable record that moves through **REPORT → ASSESS → PROTECT → CORRECT → VERIFY → PREVENT**. The core thesis: *"a report is not protection; a completed task is not automatically a safe result"* — the UI must distinguish **recorded** from **verified**, and never claim regulator authority.
+
+The user will build this in two parallel Claude Code tabs (frontend / backend) and wants a single reference document to work from. Decisions already made:
+
+- **Stack**: use the most effective tech, not restricted to vanilla HTML/CSS/JS (user reversed the earlier constraint).
+- **Backend data**: Node.js + SQLite-style local database (chosen before the stack change; still honoured — see below).
+- **Page model**: mix of server-rendered pages and app-like interactivity "depending on what the page needs".
+- **Hosting**: develop fully offline first; deploy to **Vercel** later.
+- **Scope order**: **open-manhole public journey first**, then the restaurant self-check on the same case engine (per the doc's MVP table).
+
+Deliverable of this plan: a `docs/` reference pack in the project folder (plus an optional shared scaffold) that both tabs follow.
+
+---
+
+## 1. Recommended stack (and why)
+
+| Layer | Pick | Why it is the effective choice here |
+|---|---|---|
+| Framework | **Next.js 16 (App Router) + TypeScript** | One repo serves public pages, ops dashboard and API. Server Components give fast, low-data pages; Client Components only where interactivity is needed (matches "SPA or MPA depending on page"). First-class on Vercel. Node 24 LTS is already installed locally (v24.19.0). |
+| Styling / UI | **Tailwind CSS v4 + shadcn/ui** | The concept doc itself suggests Tailwind. shadcn gives accessible Dialog/Sheet/Badge/Tabs/Table primitives you own as source, so the design can still be custom. |
+| Database | **SQLite via `@libsql/client` + Drizzle ORM (stable `drizzle-orm/libsql` driver)** | Locally: `DATABASE_URL=file:./data/safeguard.db` (zero setup, runs offline at the expo, WAL mode). On Vercel: **Turso** (libsql, via Vercel Marketplace) with the *same driver, same SQLite dialect, same schema* — only the URL changes at deploy time. Drizzle is TypeScript-first and migrations are plain SQL you can read. Fallback if the libsql native binary misbehaves on the demo laptop: swap `db/client.ts` to `drizzle-orm/node-sqlite` (Node 24 built-in, zero native deps; currently requires `drizzle-orm@rc`). Rejected: better-sqlite3 (Node ABI/node-gyp failures are a known demo-day trap). |
+| Validation / contracts | **zod 4** (`import * as z from 'zod'`) | Shared schemas used by forms (frontend tab) and actions/route handlers (backend tab); the contract between the two tabs. `z.flattenError` gives field errors for free. |
+| Auth | **DB-backed sessions**: `sessions` table + opaque token in an `HttpOnly; SameSite=Lax` cookie (`Secure` only in production), `node:crypto` scrypt password hashing (N=2^15, r=8, p=3, raised `maxmem`), seeded demo accounts per role, plus a visible "demo role switcher" (`DEMO_MODE=true` only) | ~100 lines, fully understood, no external provider needed offline, instant revocation on role switch. Role is a column on `users`. Residents never get a session; they use public routes only. Upgrade path: Better Auth (Drizzle + SQLite) if real sign-up is ever needed. |
+| Evidence files | Storage adapter interface → **local disk `./data/uploads`** in dev, **Vercel Blob (private)** in prod. Route handler reads `request.formData()` (no multer needed), `sharp().rotate().resize(1600).jpeg()` strips **all** EXIF/GPS by default (never call `withMetadata()`); client also compresses with canvas to ~200 KB before upload (data cost + POPIA + Vercel's 4.5 MB body limit). | Private evidence never lives under `/public`; `GET /api/v1/evidence/[id]` checks the session role before streaming. Filenames are UUIDs, never the original name. |
+| Workflow engine | Pure TypeScript finite-state-machine module + append-only `case_events` table | Status is *derived from events*, transitions are role- and evidence-gated server-side. This is the product's differentiator and is independent of UI. |
+| Testing | **vitest** for the domain/state machine; Playwright for the 8-step demo path (optional) | The state machine is where bugs would embarrass the demo. |
+| Tooling | pnpm (installed, v11.24), `next dev`, Drizzle Kit, `tsx` seed script, `.env.local` | |
+| Later: PWA | Manual `public/sw.js` offline shell + IndexedDB outbox for offline report submission (research shows Background Sync is Chromium-only; always keep an `online`-event fallback) | "Could" tier; load-shedding story for the pitch. |
+
+Rejected alternatives (one line each): Supabase (needs internet + cloud account at demo time); separate Express API + Vite SPA (two deployables on Vercel, duplicated types, more glue for the same result); Postgres locally (install burden; libsql→Turso gives the same "offline now, cloud later" with zero dialect change).
+
+---
+
+## 2. Repository layout and the two-tab ownership split
+
+```
+safeguard-sa/
+├── docs/                         ← THE REFERENCE PACK (this plan's deliverable)
+│   ├── 00-README.md              overview, how to run, tab ownership rules
+│   ├── 01-domain-and-workflow.md states, transitions, roles, permission matrix
+│   ├── 02-data-model.md          Drizzle schema, event log, derived status
+│   ├── 03-api-contract.md        server actions + /api/v1 routes, zod schemas, error shape
+│   ├── 04-frontend-guide.md      screens, components, design tokens, UX rules
+│   ├── 05-features-roadmap.md    Must/Should/Could with effort + cut order
+│   ├── 06-demo-script.md         8-step pitch sequence, seed data, reset
+│   └── 07-deploy-vercel.md       Turso + Blob + env vars, later
+├── src/
+│   ├── app/
+│   │   ├── (public)/             FRONTEND TAB  — report, track/[ref], poster/[ref]
+│   │   ├── (ops)/                FRONTEND TAB  — dashboard, cases/[id], checklists, login
+│   │   ├── api/v1/               BACKEND TAB   — route handlers (public status, uploads, counts)
+│   │   ├── layout.tsx, globals.css               FRONTEND TAB
+│   ├── components/               FRONTEND TAB  — ui/ (shadcn), case/, forms/, layout/
+│   ├── server/                   BACKEND TAB
+│   │   ├── db/ (schema.ts, client.ts, migrations)
+│   │   ├── domain/ (workflow.ts state machine, permissions.ts, reference.ts)
+│   │   ├── services/ (cases.ts, events.ts, evidence.ts, checklists.ts, dashboard.ts)
+│   │   ├── actions/ ("use server" mutations the UI calls)
+│   │   ├── auth/ (session.ts, password.ts, demo-roles.ts)
+│   │   └── storage/ (local.ts, blob.ts, index.ts)
+│   └── lib/
+│       ├── contracts/            SHARED — zod schemas + TS types (edited by backend tab, read by both)
+│       └── utils/                SHARED
+├── scripts/seed.ts               BACKEND TAB
+├── proxy.ts                      BACKEND TAB (Next 16 name for middleware: route guards)
+├── drizzle.config.ts, .env.example, package.json
+```
+
+Ownership rules (go in `docs/00-README.md`):
+1. Frontend tab never imports from `src/server/db` or `src/server/services` directly in Client Components; pages (Server Components) may call `services/*` for reads, and forms call `actions/*` for writes.
+2. Backend tab never edits `src/components` or route-group pages; it ships functions + zod contracts and updates `docs/03-api-contract.md` whenever a signature changes.
+3. Any new field or transition is first added to `src/lib/contracts/` and `docs/01` / `docs/02`, then implemented. The docs are the handshake between tabs.
+4. Each tab works on its own git branch (`feat/frontend-*`, `feat/backend-*`); merge via PR to `main` at least daily.
+
+---
+
+## 3. Domain model (from the concept doc, pages 5–7)
+
+**Status chain** (doc p.5): `Unassessed → Under review → Uncontained → Protection recorded → Protected (verified) → Repair pending → Repair recorded → Resolved (verified)`; rejected/disputed verification returns the case to review. **Two independent verified outcomes**: `protection_verified` and `closure_verified` (doc p.8, "Two separate safety outcomes").
+
+**Source types** (doc p.4 "Design rule"): `public_report | internal_self_check | official_finding` — never interchangeable, always displayed.
+
+**Roles** (doc p.7): `resident`, `community_worker`, `facility_staff`, `ops_manager`, `field_team`, `reviewer`. Limits: only `reviewer` can verify; `ops_manager` assigns/prioritises; `field_team` records protection and repairs ("work recorded does not mean accepted"); residents see restricted public status only.
+
+**Environments** (doc p.4): `public_infrastructure` (G12 focus, build first), `food_premises`, `retail_workplace`, `healthcare` — same engine, different checklist templates/permissions. MVP builds `public_infrastructure` + one `food_premises` checklist.
+
+**Core case fields** (doc p.5 table): source + location, risk + evidence, responsible owner + due date, protection record, correction + review, history/recurrence/next inspection.
+
+**Trust rules to encode as copy and as code** (doc p.7, p.11): no certificates generated; self-check ≠ official inspection; emergency guidance shown for urgent danger; data minimisation (no children's names, no faces, approximate public location, EXIF stripped).
+
+> Detailed transition table, permission matrix and schema: filled in §4 from the backend research (pending).
+
+---
+
+## 4. Workflow state machine, permissions and schema (backend tab)
+
+Lessons borrowed from research: FixMyStreet's documented weakness is that anyone can mark a report "fixed" without proof; SafetyCulture lets admins restrict statuses to user groups and **require photo evidence before Complete**; CAPA practice separates *containment* (protection) from *correction* (repair) from *verification of effectiveness*. SafeGuard encodes all three as server-side rules.
+
+### 4.1 Status enum and the two verified flags
+
+`status`: `unassessed | under_review | uncontained | protection_recorded | protected | repair_pending | repair_recorded | resolved | dismissed`
+
+Separate columns on `cases`: `protection_verified_at/by` and `closure_verified_at/by`. UI shows "Protected (verified)" only when the former is set. A rejected closure review keeps protection flags intact.
+
+### 4.2 Transition table (the single source of truth, `src/server/domain/workflow.ts`)
+
+| From | To | Allowed roles | Guard (checked in the same transaction) |
+|---|---|---|---|
+| `unassessed` | `under_review` | community_worker, facility_staff, ops_manager | — (claims triage) |
+| `under_review` | `uncontained` | community_worker, facility_staff, ops_manager | hazard_category, location, owner + due_date present; severity set |
+| `under_review` | `dismissed` | ops_manager | reason |
+| `uncontained` | `protection_recorded` | field_team, facility_staff, community_worker | `actions` row type=protection **+ ≥1 evidence photo** |
+| `protection_recorded` | `protected` | reviewer | `reviews` row stage=protection, approved → sets `protection_verified_*` |
+| `protection_recorded` | `under_review` | reviewer | `reviews` row rejected **with reason** |
+| `protected` | `repair_pending` | ops_manager | `assignments` row stage=repair with due_date |
+| `repair_pending` | `repair_recorded` | field_team, facility_staff | `actions` row type=correction **+ ≥1 evidence photo** |
+| `repair_recorded` | `resolved` | reviewer | `reviews` row stage=closure, approved → sets `closure_verified_*`, schedules `reinspect_due` (e.g. +90 days by category) |
+| `repair_recorded` | `under_review` | reviewer | `reviews` row rejected with reason |
+| `resolved` | `under_review` | reviewer, ops_manager | reopen reason |
+
+Rules: `transition(caseId, to, actor, payload)` is **the only code path that updates `cases.status`** (grep for it in review). It runs in one Drizzle transaction: load case → check rule exists (else 409) → check role (else 403) → run guard (else 422 with human message, e.g. "Needs: photo + reviewer") → insert `case_events` row with `seq = max+1` (UNIQUE `(case_id, seq)` gives optimistic concurrency) → update `cases`. Public rows (`source_type=public_report`) start at `unassessed`; a failed self-check item starts at `under_review` already owned by the facility.
+
+### 4.3 Permission matrix (`src/server/domain/permissions.ts`, data not code)
+
+| Action | Roles |
+|---|---|
+| `case.view` | community_worker, facility_staff (own facility only), ops_manager, field_team, reviewer |
+| `case.triage` | community_worker, facility_staff, ops_manager |
+| `case.assign` | ops_manager |
+| `case.record_protection` | community_worker, facility_staff, field_team |
+| `case.record_repair` | field_team, facility_staff |
+| `case.verify` | reviewer |
+| `case.reopen` | reviewer, ops_manager |
+| `checklist.submit` | facility_staff |
+| `dashboard.view` | ops_manager, reviewer |
+| `evidence.view` | same as `case.view` |
+
+`can(user, action, case?)` is called by server actions, route handlers and the FSM. `proxy.ts` (Next 16 middleware) only redirects unauthenticated users away from `/(ops)` routes; it never does fine-grained checks.
+
+### 4.4 Drizzle schema (`src/server/db/schema.ts`, SQLite)
+
+| Table | Key columns |
+|---|---|
+| `users` | id, email UNIQUE, password_hash, display_name, role, location_id NULL, active |
+| `sessions` | token_hash PK, user_id FK, created_at, expires_at |
+| `locations` | id, name, type (`facility`/`public_space`), environment (`public_infrastructure`/`food_premises`/`retail_workplace`/`healthcare`), municipality, ward, suburb, street, landmark, lat NULL, lng NULL |
+| `cases` | id, **ref** UNIQUE (`SG-2026-0001`, sequential from a counter), source_type (`public_report`/`internal_self_check`/`official_finding`), environment, hazard_category, title, description, location_id FK, lat/lng NULL, status, severity (1–25 from 5×5 matrix), likelihood, impact, owner_user_id NULL, due_date NULL, protection_verified_at/by, closure_verified_at/by, reinspect_due NULL, duplicate_of NULL, interest_count, idempotency_key UNIQUE NULL, reporter_contact NULL (staff-only), created_by NULL, created_at, updated_at |
+| `case_events` (append-only, never UPDATE/DELETE) | id, case_id, seq, event_type (`created`/`status_changed`/`assigned`/`action_recorded`/`evidence_added`/`review_recorded`/`note`), from_status, to_status, actor_user_id NULL, actor_role, payload_json, created_at |
+| `actions` | id, case_id, type (`protection`/`correction`), description, performed_by, performed_at, created_at |
+| `evidence` | id (UUID = filename), case_id, action_id NULL, checklist_answer_id NULL, storage_key, mime, bytes, sha256, caption, uploaded_by NULL, created_at |
+| `assignments` | id, case_id, assignee_user_id, assigned_by, stage (`protection`/`repair`), due_date, created_at, superseded_at NULL |
+| `reviews` | id, case_id, stage (`protection`/`closure`), decision (`approved`/`rejected`), reason, reviewer_id, created_at |
+| `checklist_templates` | id, name ("Restaurant cold storage"), environment, version |
+| `checklist_items` | id, template_id, sort, prompt, hazard_category, fail_creates_case (bool) |
+| `checklist_responses` | id, template_id, location_id, submitted_by, submitted_at |
+| `checklist_answers` | id, response_id, item_id, result (`pass`/`fail`/`na`), note, case_id NULL |
+| `notifications` (simulated feed) | id, case_id, channel (`sms`/`whatsapp`/`email`/`in_app`), recipient_label, body, created_at |
+
+Derived dashboard query: counts by status, `overdue` (due_date < now and not terminal), `exposed` (protection_verified_at IS NULL and status in the active set), `pending_verification` (status in protection_recorded/repair_recorded), `recorded_not_verified_closures`.
+
+### 4.5 Public projection (whitelist, never blacklist)
+
+`toPublicView(case)` → `{ ref, hazard_category, suburb, municipality, public_status, protection: 'not_yet'|'recorded'|'verified', repair: 'not_yet'|'recorded'|'verified', last_update }`. `public_status` maps the nine internal statuses to four public words: *Received / Being assessed / Protection in place / Resolved*. No lat/lng, no names, no photos, no notes.
+
+### 4.6 Intake extras
+
+- **Idempotency**: public report accepts an `Idempotency-Key` UUID (stored on `cases.idempotency_key`); same key → replay the stored 201. Powers the offline outbox later.
+- **Duplicate suggestion**: before insert, haversine query for open cases with the same category within ~150 m in the last 14 days → return `possibleDuplicates`; if the user confirms, set `duplicate_of` and bump `interest_count`.
+- **Rate limit** on the public report route: simple in-memory sliding window (10 / 15 min per IP) for local; swap to `@upstash/ratelimit` or Vercel Firewall rule at deploy.
+- **Error shape** everywhere: RFC 9457 `{ type, title, status, detail, errors? }` with `application/problem+json`.
+
+---
+
+## 4b. API contract between tabs (`docs/03-api-contract.md`)
+
+**Reads (Server Components call services directly):** `services/cases.list(filter, viewer)`, `services/cases.get(id, viewer)`, `services/events.timeline(caseId)`, `services/dashboard.counts()`, `services/checklists.template(id)`, `services/public.byRef(ref)`.
+
+**Writes (Server Actions in `src/server/actions/*.ts`, all return `{ ok: true, data } | { ok: false, problem }`):** `submitPublicReport(formData)`, `loginAction`, `logoutAction`, `demoSwitchRole(role)`, `triageCase(id, { category, severity, ownerId, dueDate })`, `assignRepair(id, { assigneeId, dueDate })`, `recordAction(id, { type, description, photos })`, `reviewCase(id, { stage, decision, reason })`, `reopenCase(id, reason)`, `submitChecklist(templateId, answers)`.
+
+**Route handlers (`src/app/api/v1/…`, for polling, QR, files, external):**
+
+| Method & path | Who | Purpose |
+|---|---|---|
+| `GET /api/v1/public/cases/[ref]` | anyone | Public projection; the track page polls it every 5 s |
+| `POST /api/v1/public/reports` | anyone (rate-limited) | Same as `submitPublicReport`, for the offline outbox / external clients |
+| `GET /api/v1/evidence/[id]` | staff with `evidence.view` | Streams the private file |
+| `GET /api/v1/dashboard/counts` | ops_manager, reviewer | Live tiles refresh |
+| `POST /api/v1/admin/reset-demo` | `DEMO_MODE` only | Re-runs the seed |
+
+Zod schemas for every payload live in `src/lib/contracts/` and are imported by both tabs; the backend tab owns them and bumps `docs/03` on change.
+
+---
+
+## 5. Frontend guide (from research + doc p.6)
+
+**Screens, in build order (manhole journey first)**
+1. `/report` — photo-first, 3-step form (Snap → describe → location). `<input type=file accept=image/* capture=environment>` + a "choose from gallery" button; client canvas compression to ≤1280px/~200KB; map-less location: municipality → suburb/ward → street → nearest landmark, optional one-tap GPS (coarse, after tap only). Confirmation shows big reference number + Copy/Share.
+2. `/track/[ref]` — public, deliberately minimal: category, suburb, **two big lines: "Interim protection: Recorded / Verified / Not yet" and "Repair: …"**, last update, honest footer. Polls `/api/v1/public/cases/[ref]` every 5s (powers the QR demo moment). No photos, no names.
+3. `/login` + demo role switcher (visible banner "DEMO — simulated roles").
+4. `/dashboard` — counts: Uncontained / In review / Protected / Action due / Pending verification / Resolved; priority queue; "uncontained for 3h 12m" live timers; overdue in amber.
+5. `/cases/[id]` — header with **dual-outcome tracker** (Protection ○→◐→● / Repair ○→◐→●), vertical event timeline with `Recorded` (amber, hollow) vs `Verified` (green, filled tick) vs `Uncontained` (red, triangle) badges — icon + text, never colour alone; role-gated action buttons that explain what is missing ("Needs: photo + reviewer").
+6. `/poster/[ref]` — printable A4 with QR → public track page, "Protection recorded — NOT yet verified".
+7. `/checklists/[template]` — restaurant cold-storage self-check: Pass/Fail/N/A taps, a Fail spawns a case with `source=internal_self_check` (phase 2).
+
+**Design tokens** (globals.css, Tailwind v4 `@theme`): three status colours only (red uncontained / amber recorded / green verified) each with icon + word; one accent for actions; system font stack; 16px minimum, 18px on public page; `color-scheme: light dark`; `prefers-reduced-motion` respected; 44px tap targets; sticky bottom submit on mobile; container queries for case cards.
+
+**Accessibility**: `role="status"` on badges that change, `role="alert"` for uncontained warnings, `aria-current="step"` on timeline, labels + `aria-describedby` for errors, focus to `<h1>` after client navigation.
+
+**i18n (Could)**: JSON dictionaries en/zu/st/af with whole-phrase plurals (isiZulu noun classes don't suffix-pluralise).
+
+---
+
+## 6. Feature roadmap (Must / Should / Could) — from research
+
+**Must (demo fails without):** event-sourced case model with recorded/verified per stage; dual-outcome tracker; vertical timeline; evidence-gated transitions (server 422 with human message); photo-first report form with compression; public status by reference; demo role switcher; seeded data (~12 Gauteng fictional cases) + Reset Demo; dashboard counts.
+
+**Should (cheap, judges lean in):** live "uncontained for Xh Ym" timers + SLA by severity; 5×5 likelihood×severity triage grid driving due dates; QR poster; duplicate suggestion (same category, <150 m, <14 days); keyword category suggestion ("rules, not ML"); simulated notification feed ("SMS to 07x…"); print stylesheet; before/after metrics tiles (median time-to-protection-verified, % closures with verified repair); scheduled reinspection with "+90 days" time-travel admin button; dark mode.
+
+**Could:** Leaflet+OSM single map; Plus Codes; offline outbox PWA; low-data toggle (`navigator.connection.saveData`); repeat-hazard list by suburb; real WhatsApp via Twilio sandbox; `?demo=1` scripted walkthrough overlay.
+
+**Cut order if short:** Twilio → map → offline → repeat-hazard → metrics → dark mode. Never cut the verified workflow (doc p.10).
+
+---
+
+## 7. Demo script (doc p.10, 8 steps)
+
+1 show manhole → 2 submit report (resident) → 3 assign + prioritise (ops manager) → 4 record barrier (field team) → 5 reviewer verifies protection (QR poster flips amber→green on judge's phone) → 6 crew records repair → 7 reviewer closes → 8 restaurant self-check on the same engine. Seed two cases stuck at "repair recorded, not verified" so the dashboard shows the gap. Honest-limits slide: role switcher ≠ auth, notifications simulated, no municipal integration, Open311-shaped fields make that a mapping exercise.
+
+---
+
+## 8. Implementation steps (what happens after plan approval)
+
+**Step 1 — Write the reference pack** (`docs/00`–`07` above) in `C:\Users\HomePC\Documents\Chuma\Projects\Hackathons\Youth Tech\safeguard-sa\docs\`. Content = sections 1–7 of this plan expanded, with the schema/transition tables and code snippets from research. This is the user's primary ask.
+
+**Step 2 — Scaffold the shared base once** so both tabs start from the same skeleton (recommended; ~15 min), in `C:\Users\HomePC\Documents\Chuma\Projects\Hackathons\Youth Tech\safeguard-sa\`:
+```
+pnpm create next-app@latest safeguard-sa --ts --tailwind --app --src-dir --eslint --import-alias "@/*"
+pnpm add drizzle-orm @libsql/client zod sharp
+pnpm add -D drizzle-kit tsx vitest @types/node
+pnpm dlx shadcn@latest init
+pnpm dlx shadcn@latest add button card badge dialog sheet tabs table input textarea select label separator
+```
+Then: `git init` + first commit; folder structure from §2 (empty `index.ts` placeholders); `.env.example` with `DATABASE_URL=file:./data/safeguard.db`, `SESSION_TTL_HOURS=12`, `DEMO_MODE=true`, `STORAGE_DRIVER=local`, `UPLOAD_DIR=./data/uploads`; `.nvmrc` = `24` and `"engines": { "node": ">=24 <25" }`; `data/` git-ignored except `data/demo.db` (committed seeded copy as last-resort fallback); `package.json` scripts `dev`, `db:generate`, `db:migrate`, `db:seed`, `test`. Both tabs branch from this commit.
+
+**Step 3 — Backend tab (order):** Drizzle schema + first migration → `reference.ts` (`SG-2026-NNNN` counter) → `workflow.ts` state machine + `permissions.ts` + vitest tests for every row of the transition table → auth (`password.ts` scrypt, `session.ts` cookie + table, `demo-roles.ts`) → `proxy.ts` guard for `/(ops)` → services → server actions → route handlers (`public/cases/[ref]`, `public/reports`, `evidence/[id]`, `dashboard/counts`, `admin/reset-demo`) → upload handling (`request.formData()` → sharp → storage adapter) → seed script: 6 role accounts (one shared demo password), ~5 fictional Gauteng locations, ~12–25 cases spread across every status with back-dated events, two deliberately stuck at `repair_recorded`, fixed refs so the demo script can type them; one restaurant cold-storage checklist template.
+
+**Step 4 — Frontend tab (order):** tokens + layout + status badge/tracker/timeline components (with fixture data) → `/report` → `/track/[ref]` → login/role switcher → `/dashboard` → `/cases/[id]` with actions → `/poster/[ref]` → checklist screen.
+
+**Step 5 — Integrate + rehearse** the 8-step script twice with seeded data; record a backup video.
+
+**Step 6 — Deploy later:** Vercel project, Marketplace Turso (libsql) + Vercel Blob, `drizzle-kit migrate` against Turso, env vars, `STORAGE_DRIVER=blob`.
+
+---
+
+## 9. Verification
+
+- `pnpm vitest` passes for every allowed/forbidden transition and role gate (e.g. field_team cannot verify; verify without photo → rejected).
+- `pnpm dev` offline (Wi-Fi off): `/report` submits with a photo, `/track/[ref]` shows "Not yet"; walk steps 3–7 as different roles and watch the tracker flip to Verified; dashboard counts change accordingly.
+- Public endpoint returns no photo URLs, names or exact GPS; evidence route returns 403 for a resident session.
+- Lighthouse mobile on `/report` and `/track`: performance ≥ 90, accessibility ≥ 95, total transfer < 300 KB.
+- Reset Demo restores the seed and the script replays end to end.
