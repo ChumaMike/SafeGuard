@@ -10,6 +10,16 @@ import {
   SIGHTING_KINDS,
   SOURCE_TYPES,
   STAFF_ROLES,
+  type ActionType as ActionTypeT,
+  type CaseStatus as CaseStatusT,
+  type Decision as DecisionT,
+  type EventType as EventTypeT,
+  type HazardCategory as HazardCategoryT,
+  type ReviewStage as ReviewStageT,
+  type Role as RoleT,
+  type SightingKind as SightingKindT,
+  type SourceType as SourceTypeT,
+  type StaffRole as StaffRoleT,
 } from "./labels";
 
 // Labels, const arrays and the string-literal types live in ./labels (zod-free, client-safe).
@@ -26,17 +36,15 @@ export const ReviewStage = z.enum(REVIEW_STAGES);
 export const Decision = z.enum(DECISIONS);
 export const EventType = z.enum(EVENT_TYPES);
 
-// The zod consts above shadow the star re-export for these names; re-export the types explicitly
-// so `import type { CaseStatus } from "@/lib/contracts/enums"` keeps working.
-export type {
-  ActionType,
-  CaseStatus,
-  Decision,
-  EventType,
-  HazardCategory,
-  ReviewStage,
-  Role,
-  SightingKind,
-  SourceType,
-  StaffRole,
-} from "./labels";
+// The zod consts above shadow the star re-export for these names, so the string-literal types
+// are re-declared here under the same names (value + type merging).
+export type Role = RoleT;
+export type StaffRole = StaffRoleT;
+export type CaseStatus = CaseStatusT;
+export type HazardCategory = HazardCategoryT;
+export type SourceType = SourceTypeT;
+export type SightingKind = SightingKindT;
+export type ActionType = ActionTypeT;
+export type ReviewStage = ReviewStageT;
+export type Decision = DecisionT;
+export type EventType = EventTypeT;

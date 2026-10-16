@@ -4,7 +4,10 @@ export function safeNext(next: unknown, fallback = "/home"): string {
   try {
     const u = new URL(next, "http://local");
     if (u.origin !== "http://local") return fallback;
-    return u.pathname + u.search + u.hash;
+    const out = u.pathname + u.search + u.hash;
+    // Re-check the normalised result: protocol-relative or backslash forms must never survive.
+    if (!out.startsWith("/") || out.startsWith("//") || out.startsWith("/\\")) return fallback;
+    return out;
   } catch {
     return fallback;
   }

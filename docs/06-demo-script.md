@@ -32,3 +32,13 @@ Problem (Khutsong) → "a report is not protection" → the live path above → 
 ## Before the demo
 
 `pnpm db:seed`, open `/dashboard` as ops manager, print the SG-2026-0014 poster, test the QR with a phone on the same hotspot, record a backup video.
+
+## Presenters
+
+Four people: two present the problem and the product, two run the demo. The timed script, hand-overs and judge questions are in `docs/08-pitch-script.md`. The deck's speaker notes carry the same cues.
+
+## Fallbacks
+
+- `pnpm db:restore` copies the committed `data/demo.db` over the live database (then restart `pnpm dev`).
+- `POST /api/v1/admin/reset-demo` re-seeds in place and clears rate limits.
+- `pnpm tsx scripts/screenshots.ts` regenerates the deck screenshots from a seeded server.
