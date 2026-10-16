@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 import sharp from "sharp";
-import type { DbOrTx } from "@/server/db/client";
+import { db, type DbOrTx } from "@/server/db/client";
 import { evidence, type Evidence } from "@/server/db/schema";
 import { Problem } from "@/server/domain/errors";
 import { appendEvent, type Actor } from "@/server/domain/events";
@@ -74,4 +74,16 @@ export function photosFromFormData(fd: FormData, field = "photos"): File[] {
   const files = fd.getAll(field).filter((v): v is File => typeof v === "object" && v !== null && "arrayBuffer" in v && (v as File).size > 0);
   if (files.length > MAX_PHOTOS) throw new Problem(422, `At most ${MAX_PHOTOS} photos per action`);
   return files;
+}
+
+/** Reporter photos on a public report. Stored privately, EXIF stripped, never shown on the public page. */
+export async function attachPublicPhotos(caseId: string, files: File[], now: Date = new Date()): Promise<number> {
+  const photos = files.slice(0, 2);
+  if (photos.length === 0) return 0;
+  await db.transaction(async (tx) => {
+    for (const f of photos) {
+      await storePhoto(tx, f, { caseId, uploadedBy: null, caption: "Reporter photo (safe distance)" }, { kind: "public_reporter" }, now);
+    }
+  });
+  return photos.length;
 }

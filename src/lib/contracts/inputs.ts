@@ -44,6 +44,8 @@ export type PublicReportInput = z.infer<typeof PublicReportInput>;
 export const SightingInput = z.object({
   kind: SightingKind,
   idempotencyKey: z.uuid(),
+  /** When the person saw it. Defaults to submission time. Kept separate from submitted_at. */
+  observedAt: z.iso.datetime({ offset: true }).or(z.iso.datetime()).optional(),
 });
 export type SightingInput = z.infer<typeof SightingInput>;
 

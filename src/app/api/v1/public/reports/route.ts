@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { PublicReportInput } from "@/lib/contracts/inputs";
 import { Problem } from "@/server/domain/errors";
-import { handleRouteError, parseOrThrow, problemResponse, readBody } from "@/server/http";
+import { formDataToObject, handleRouteError, parseOrThrow, problemResponse, readBody } from "@/server/http";
+import { attachPublicPhotos, photosFromFormData } from "@/server/services/evidence";
 import { FIFTEEN_MINUTES, checkRateLimit, clientIp } from "@/server/rate-limit";
 import { createPublicReport } from "@/server/services/cases";
 
@@ -14,7 +15,15 @@ export async function POST(req: Request) {
       });
     }
 
-    const body = await readBody(req);
+    let body: Record<string, unknown>;
+    let photos: File[] = [];
+    if ((req.headers.get("content-type") ?? "").includes("multipart/form-data")) {
+      const fd = await req.formData();
+      body = formDataToObject(fd);
+      photos = photosFromFormData(fd).slice(0, 2);
+    } else {
+      body = await readBody(req);
+    }
     const headerKey = req.headers.get("idempotency-key");
     if (headerKey && !body.idempotencyKey) body.idempotencyKey = headerKey;
 
@@ -24,6 +33,8 @@ export async function POST(req: Request) {
     if (result.kind === "possible_duplicate") {
       return NextResponse.json({ status: "possible_duplicate", possibleDuplicates: result.possibleDuplicates }, { status: 200 });
     }
+
+    if (!result.replayed && photos.length > 0) await attachPublicPhotos(result.case.id, photos);
 
     return NextResponse.json(
       {

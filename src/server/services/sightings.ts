@@ -23,6 +23,7 @@ export async function recordSighting(
   kind: SightingKind,
   idempotencyKey: string,
   now: Date = new Date(),
+  observedAt?: string,
 ): Promise<SightingResult> {
   return db.transaction(async (tx) => {
     const c = await tx.select().from(cases).where(eq(cases.ref, ref)).get();
@@ -47,7 +48,14 @@ export async function recordSighting(
       eventType: "sighting",
       actor,
       now,
-      payload: { kind, idempotencyKey, communityReported: true },
+      payload: {
+        kind,
+        idempotencyKey,
+        communityReported: true,
+        observedAt: observedAt ?? now.toISOString(),
+        submittedAt: now.toISOString(),
+        officialInspection: false,
+      },
     });
 
     let updated = await tx

@@ -49,7 +49,10 @@ function render(e: TimelineItem): Rendered {
     case "sighting": {
       const kind = String(p.kind ?? "still_open") as SightingKind;
       const tone: Tone = kind === "barrier_present" ? "amber" : "red";
-      return { Icon: Eye, title: `Community sighting: ${SIGHTING_LABEL[kind] ?? kind}`, detail: "Reported by a member of the public. Does not change the verified status.", chip: { tone, label: "Community-reported" }, community: true };
+      const observed = p.observedAt ? formatDateTime(String(p.observedAt)) : null;
+      const submitted = p.submittedAt ? formatDateTime(String(p.submittedAt)) : null;
+      const when = observed && submitted && observed !== submitted ? `Observed ${observed} · submitted ${submitted}. ` : observed ? `Observed ${observed}. ` : "";
+      return { Icon: Eye, title: `Community sighting: ${SIGHTING_LABEL[kind] ?? kind}`, detail: `${when}Not an official inspection. Does not change the verified status.`, chip: { tone, label: "Community-reported" }, community: true };
     }
     case "assigned":
       return p.stage === "repair"

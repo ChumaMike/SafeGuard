@@ -21,7 +21,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ ref: string }>
     }
 
     const input = parseOrThrow(SightingInput, await readBody(req));
-    const result = await recordSighting(ref, input.kind, input.idempotencyKey);
+    const result = await recordSighting(ref, input.kind, input.idempotencyKey, new Date(), input.observedAt);
     return NextResponse.json(
       { status: result.replayed ? "replayed" : "recorded", reopened: result.reopened, case: toPublicView(result.case) },
       { status: result.replayed ? 200 : 201 },
